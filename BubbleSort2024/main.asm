@@ -54,11 +54,106 @@ message1 BYTE "Sorted array: ",0dh,0ah, 0	    ; new line in windows OS is a comb
 												;0xD carriage return(\r),
 delimeter BYTE ", ",0
 .code
+; -- Swap function --
+; Description : This function swaps the values of two integers given as pointers.
+; Input : EBP+8 -> Pointer to the first integer
+;         EBP+12 -> Pointer to the second integer
+; Output : The values of the two integers are swapped.
+swap PROC
+push ebp
+mov ebp,esp
+pushad
+
+mov edi ,[ebp+8]
+mov eax , [edi]  ; eax <- *a
+
+mov esi ,[ebp+12]
+mov ebx , [esi]  ; ebx <- *b
+
+mov [esi],eax    ; *b <- *a
+mov [edi],ebx    ; *a <- *b
+
+popad
+mov esp,ebp
+pop ebp
+ret 8
+swap ENDP
+
 bubbleSort Proc
 push ebp
 mov ebp, esp
+sub esp, 4
 pushad
 
+;;;void bubbleSort(int arr[], int n)
+;;;{
+;;;    int i, j;
+;;;    bool swapped;
+;;;    for (i = 0; i < n - 1; i++) {
+	   ; initialization
+	   mov ebx, 0 ; i = 0 loop counter
+	   mov esi, [ebp + 8] ; array base address
+	   mov edx, [ebp + 12] ; edx <- length of array
+	   dec edx ; edx <- n - 1
+	   ; body
+	   BODY1:
+	   ;;; swapped = false;					
+			mov [ebp - 4], DWORD PTR 0 ; swapped = false
+
+			push ebx ; save i
+			push edx ; save n-1
+
+			;for (j = 0; j < n - i - 1; j++) {
+			; initialization
+			sub edx, ebx
+			mov ebx, 0 ; j = 0 loop counter
+			jmp COND2
+			; body
+			BODY2:
+			  ; if (arr[j] > arr[j + 1]) {
+			  mov eax, [esi + ebx * 4] ; eax <- arr[j]
+			  mov edi,ebx
+			  inc edi
+			  mov ecx, [esi + edi * 4] ; ecx <- arr[j+1]
+			  cmp eax, ecx ; arr[j] > arr[j+1]
+			  jle STEP2
+              ;  swap(arr[j], arr[j + 1]);
+			  lea eax , [esi + ebx * 4] ; eax <- &arr[j]
+			  lea ecx , [esi + edi * 4] ; ecx <- &arr[j+1]
+			  push eax 
+			  push ecx
+			  call swap
+	          ;    swapped = true;
+			  mov [ebp - 4], DWORD PTR 00000001h ; swapped = true
+			  
+
+
+			; step
+			STEP2:
+			inc ebx ; j++
+			; condition
+			COND2:
+			cmp ebx, edx ; j < n - i - 1
+			jl BODY2  		
+
+			pop edx ; restore i
+			pop ebx ; restore n-1
+
+
+;;        // If no two elements were swapped
+;;        // by inner loop, then break
+;;        if (swapped == false
+		  cmp [ebp - 4],DWORD PTR 0 ; swapped == false
+		  je EXITBUBBLESORT
+
+	   ; step
+			inc ebx ; i++
+	   ; condition
+	   COND1:
+			cmp ebx, edx ; i < n - 1 
+			jl BODY1
+
+EXITBUBBLESORT:
 
 popad
 mov esp, ebp
@@ -78,16 +173,15 @@ pushad
 	 ;initialization
 	 mov ebx,0 ; i = 0 loop counter
 	 mov edi, [ebp + 8] ; array base address
+	 mov edx, [ebp +12]
+	 dec edx	; edx <- size - 1
 	 jmp COND
 	 ;body
 	 BODY:
 	;cout << " " << arr[i];
 	    mov eax, [edi + ebx * 4] ; eax <- array[i] 
-		call WriteHex
-		
-		; check if it is the last element
-		mov edx, [ebp +12]
-		dec edx
+		call WriteHex 		
+		; check if it is the last element		
 		cmp ebx, edx ; i == size-1
 		je STEP
 		mov edx, OFFSET delimeter
@@ -107,6 +201,10 @@ ret
 printArray Endp
 main PROC
 
+;    printArray(arr, N);
+	 push LengthOf array
+	 push OFFSET array
+	 call printArray
 ;int main()
 ;{
 ;    int arr[] = { 64, 34, 25, 12, 22, 11, 90 };
@@ -124,8 +222,7 @@ main PROC
 	 push LengthOf array
 	 push OFFSET array
 	 call printArray
-;    return 0;
-;};;;
+
 
 exit
 main ENDP
