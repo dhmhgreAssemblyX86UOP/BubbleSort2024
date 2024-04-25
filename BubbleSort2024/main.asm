@@ -184,8 +184,10 @@ pushad
 		; check if it is the last element		
 		cmp ebx, edx ; i == size-1
 		je STEP
+		push edx
 		mov edx, OFFSET delimeter
 		call WriteString
+		pop edx
 	 ;step
 	 STEP:
 		inc ebx
@@ -193,6 +195,7 @@ pushad
 	 COND:
 	    cmp ebx, [ebp + 12] ; i < size
 		jl BODY
+		call Crlf
 
 popad
 mov esp, ebp
